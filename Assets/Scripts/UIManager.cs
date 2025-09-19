@@ -1,16 +1,28 @@
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
-    public AudioController audioController;
-    public CharacterManager characterManager;
+    [Header("UI Elements")]
+    [SerializeField] private Text characterNameText;
+    [SerializeField] private Image characterIconImage;
 
-    // Buttons can call these
-    public void OnPlayMusic() => audioController.PlayMusic();
-    public void OnPauseMusic() => audioController.PauseMusic();
-    public void OnNextTrack() => audioController.NextTrack();
-    public void OnPreviousTrack() => audioController.PreviousTrack();
-    public void OnToggleMute() => audioController.ToggleMute();
-    public void OnSetVolume(float value) => audioController.SetVolume(value);
-    public void OnSwitchCharacter() => characterManager.SwitchCharacter();
+    /// <summary>
+    /// Updates the UI with the character's name and icon.
+    /// </summary>
+    /// <param name="character">CharacterData containing info to display.</param>
+    public void UpdateCharacterUI(CharacterData character)
+    {
+        if (character == null)
+        {
+            Debug.LogWarning("CharacterData is null. Cannot update UI.");
+            return;
+        }
+
+        if (characterNameText != null)
+            characterNameText.text = character.CharacterName; // Use property for safety
+
+        if (characterIconImage != null)
+            characterIconImage.sprite = character.CharacterIcon; // Use property for safety
+    }
 }

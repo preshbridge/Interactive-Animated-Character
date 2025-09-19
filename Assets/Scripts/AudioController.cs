@@ -1,54 +1,89 @@
 ﻿using UnityEngine;
-using UnityEngine.Audio;
 
 public class AudioController : MonoBehaviour
 {
-    [Header("Music Settings")]
-    public AudioSource musicSource;
-    public AudioClip[] tracks;
-    private int currentTrack = 0;
+    [Header("Audio Settings")]
+    public AudioSource audioSource;      // Assign in Inspector
+    public AudioClip[] tracks;           // Character-specific tracks
+    [Range(0f, 1f)] public float volume = 1f;
 
-    [Header("Volume Settings")]
-    [Range(0f, 1f)]
-    public float volume = 1f;
+    private int currentTrackIndex = 0;
+    private bool isMuted = false;
 
     private void Start()
     {
-        if (tracks.Length > 0)
+        if (tracks.Length > 0 && audioSource != null)
         {
-            musicSource.clip = tracks[currentTrack];
-            musicSource.volume = volume;
-            musicSource.Play();
+            audioSource.clip = tracks[currentTrackIndex];
+            audioSource.volume = volume;
+            audioSource.Play();
         }
     }
 
-    public void PlayMusic() => musicSource.Play();
-    public void PauseMusic() => musicSource.Pause();
+    // Play current track
+    public void PlayMusic()
+    {
+        if (audioSource != null && !audioSource.isPlaying)
+            audioSource.Play();
+    }
 
+    // Pause current track
+    public void PauseMusic()
+    {
+        if (audioSource != null && audioSource.isPlaying)
+            audioSource.Pause();
+    }
+
+    // Go to next track
     public void NextTrack()
     {
-        if (tracks.Length == 0) return;
-        currentTrack = (currentTrack + 1) % tracks.Length;
-        musicSource.clip = tracks[currentTrack];
-        musicSource.Play();
+        if (tracks.Length == 0 || audioSource == null) return;
+
+        currentTrackIndex++;
+        if (currentTrackIndex >= tracks.Length)
+            currentTrackIndex = 0;
+
+        audioSource.clip = tracks[currentTrackIndex];
+        audioSource.Play();
     }
 
+    // Go to previous track
     public void PreviousTrack()
     {
-        if (tracks.Length == 0) return;
-        currentTrack = (currentTrack - 1 + tracks.Length) % tracks.Length;
-        musicSource.clip = tracks[currentTrack];
-        musicSource.Play();
+        if (tracks.Length == 0 || audioSource == null) return;
+
+        currentTrackIndex--;
+        if (currentTrackIndex < 0)
+            currentTrackIndex = tracks.Length - 1;
+
+        audioSource.clip = tracks[currentTrackIndex];
+        audioSource.Play();
     }
 
-    public void ToggleMute()
+    // Mute / unmute (method name updated to match your scripts)
+    public void ToggleMusicMute()
     {
-        musicSource.mute = !musicSource.mute;
+        if (audioSource == null) return;
+        isMuted = !isMuted;
+        audioSource.mute = isMuted;
     }
 
+    // Adjust volume (0 to 1) via slider
     public void SetVolume(float newVolume)
     {
         volume = Mathf.Clamp01(newVolume);
-        musicSource.volume = volume;
+        if (audioSource != null)
+            audioSource.volume = volume;
+    }
+
+    // Toggle background music on/off via UI Toggle
+    public void ToggleBackgroundMusic(bool isOn)
+    {
+        if (audioSource == null) return;
+
+        if (isOn)
+            audioSource.Play();
+        else
+            audioSource.Pause();
     }
 }

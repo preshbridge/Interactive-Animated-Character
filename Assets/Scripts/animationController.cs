@@ -3,62 +3,85 @@ using UnityEngine;
 public class AnimationController : MonoBehaviour
 {
     [Header("Character Setup")]
-    public CharacterManager characterManager; // Reference to your CharacterManager
-    public Animator[] characterAnimators;     // Assign Animator components for each character
+    [SerializeField] private CharacterController characterController; // Optional, if you need it for movement
+    [SerializeField] private Animator[] characterAnimators;           // Assign Animator components for each character
 
     [Header("Animation Clips")]
-    public string idleState = "Idle";
-    public string runState = "Run";
+    [SerializeField] private string idleState = "Idle";
+    [SerializeField] private string runState = "Run";
 
     private int currentCharacterIndex = 0;
 
+    private Animator CurrentAnimator => characterAnimators.Length > 0 ? characterAnimators[currentCharacterIndex] : null;
+
     private void Start()
     {
-        // Initialize: make sure only current character is active
+        if (characterAnimators == null || characterAnimators.Length == 0)
+        {
+            Debug.LogWarning("No animators assigned to AnimationController.");
+            return;
+        }
+
+        // Initialize: only current character is active
         for (int i = 0; i < characterAnimators.Length; i++)
         {
-            if (i == currentCharacterIndex)
-                characterAnimators[i].gameObject.SetActive(true);
-            else
-                characterAnimators[i].gameObject.SetActive(false);
+            if (characterAnimators[i] != null)
+                characterAnimators[i].gameObject.SetActive(i == currentCharacterIndex);
         }
+
+        // Ensure current animator starts in idle
+        CurrentAnimator?.Play(idleState);
     }
 
-    // Called when switching characters
+    /// <summary>
+    /// Switches to the next character in the array.
+    /// </summary>
     public void SwitchCharacter()
     {
-        // Deactivate current character
-        characterAnimators[currentCharacterIndex].gameObject.SetActive(false);
+        if (characterAnimators.Length <= 1) return;
 
-        // Get next character index
+        // Deactivate current character
+        CurrentAnimator?.gameObject.SetActive(false);
+
+        // Move to next character
         currentCharacterIndex = (currentCharacterIndex + 1) % characterAnimators.Length;
 
-        // Activate next character
-        characterAnimators[currentCharacterIndex].gameObject.SetActive(true);
-
-        // Optional: reset animation to idle
-        characterAnimators[currentCharacterIndex].Play(idleState);
+        // Activate next character and reset to idle
+        CurrentAnimator?.gameObject.SetActive(true);
+        CurrentAnimator?.Play(idleState);
     }
 
-    // Example animation controls
+    /// <summary>
+    /// Plays a specified animation on the current character.
+    /// </summary>
     public void PlayAnimation(string animationName)
     {
-        characterAnimators[currentCharacterIndex].Play(animationName);
+        if (CurrentAnimator != null)
+            CurrentAnimator.Play(animationName);
     }
 
+    /// <summary>
+    /// Pauses the current character's animations.
+    /// </summary>
     public void PauseAnimation()
     {
-        characterAnimators[currentCharacterIndex].speed = 0;
+        if (CurrentAnimator != null)
+            CurrentAnimator.speed = 0;
     }
 
+    /// <summary>
+    /// Resumes the current character's animations.
+    /// </summary>
     public void ResumeAnimation()
     {
-        characterAnimators[currentCharacterIndex].speed = 1;
+        if (CurrentAnimator != null)
+            CurrentAnimator.speed = 1;
     }
 
-    // Shortcut functions for UI buttons
+    #region UI Shortcuts
     public void OnPlay() => ResumeAnimation();
     public void OnPause() => PauseAnimation();
     public void OnIdle() => PlayAnimation(idleState);
     public void OnRun() => PlayAnimation(runState);
+    #endregion
 }

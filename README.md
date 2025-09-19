@@ -1,1 +1,1 @@
-interactive character 
+Interactive character
